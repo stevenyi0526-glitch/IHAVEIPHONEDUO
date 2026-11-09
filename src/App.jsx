@@ -22,8 +22,8 @@ function BeforeAfter({ before, after }) {
       </figure>
       <span className="arrow" aria-hidden="true">→</span>
       <figure>
-        {after && <img src={after} alt="iPhone Duo 外屏截图效果" />}
-        <figcaption>外屏截图</figcaption>
+        {after && <img src={after} alt="iPhone Duo 外屏截图在普通手机上的效果" />}
+        <figcaption>普通手机上的样子</figcaption>
       </figure>
     </div>
   )
