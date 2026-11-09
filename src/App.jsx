@@ -3,14 +3,15 @@ import sampleUrl from './assets/sample.svg'
 import { loadImage, renderDuoScreenshot } from './duoFrame.js'
 
 const SAMPLE_TIME = '11:04'
+const SAVE_NAME = 'iphone-duo-screenshot.png'
 
 function currentTime() {
   return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
-async function renderToUrl(src, time) {
+async function renderToBlob(src, time) {
   const image = await loadImage(src)
-  return URL.createObjectURL(await renderDuoScreenshot(image, time))
+  return renderDuoScreenshot(image, time)
 }
 
 function isFileDrag(event) {
@@ -41,9 +42,8 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false
-    renderToUrl(sampleUrl, SAMPLE_TIME).then((url) => {
-      if (cancelled) URL.revokeObjectURL(url)
-      else setSampleAfter(url)
+    renderToBlob(sampleUrl, SAMPLE_TIME).then((blob) => {
+      if (!cancelled) setSampleAfter(URL.createObjectURL(blob))
     })
     return () => {
       cancelled = true
@@ -55,12 +55,16 @@ export default function App() {
 
     const before = URL.createObjectURL(file)
     try {
-      const after = await renderToUrl(before, currentTime())
+      const blob = await renderToBlob(before, currentTime())
       if (upload) {
         URL.revokeObjectURL(upload.before)
         URL.revokeObjectURL(upload.after)
       }
-      setUpload({ before, after })
+      setUpload({
+        before,
+        after: URL.createObjectURL(blob),
+        file: new File([blob], SAVE_NAME, { type: 'image/png' }),
+      })
       setError('')
     } catch {
       URL.revokeObjectURL(before)
@@ -72,6 +76,18 @@ export default function App() {
     const file = event.target.files[0]
     event.target.value = ''
     processFile(file)
+  }
+
+  // Phones get the share sheet, which offers saving to Photos. Everything else
+  // falls through to the link's normal download.
+  function handleSave(event) {
+    const files = [upload.file]
+    if (!window.matchMedia('(pointer: coarse)').matches || !navigator.canShare?.({ files })) return
+
+    event.preventDefault()
+    navigator.share({ files }).catch((shareError) => {
+      if (shareError.name !== 'AbortError') setError('保存失败，请长按图片保存')
+    })
   }
 
   function handleDragOver(event) {
@@ -107,7 +123,7 @@ export default function App() {
           {upload ? (
             <>
               <BeforeAfter before={upload.before} after={upload.after} />
-              <a className="button secondary" href={upload.after} download="iphone-duo-screenshot.png">
+              <a className="button secondary" href={upload.after} download={SAVE_NAME} onClick={handleSave}>
                 保存图片
               </a>
             </>
