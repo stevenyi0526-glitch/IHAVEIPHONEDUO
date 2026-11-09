@@ -134,6 +134,24 @@ figcaption {
   font-size: 22px;
 }
 
+.page {
+  min-height: 100vh;
+}
+
+.drop-hint {
+  position: fixed;
+  inset: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed var(--ink);
+  border-radius: 20px;
+  background: rgba(242, 241, 237, 0.92);
+  font-size: 24px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .button {
     transition: none;
