@@ -14,6 +14,12 @@ async function renderToBlob(src, time) {
   return renderDuoScreenshot(image, time)
 }
 
+// Counts an action on the GoatCounter dashboard. Does nothing if the script
+// is blocked or hasn't loaded yet.
+function track(name) {
+  window.goatcounter?.count?.({ path: name, title: name, event: true })
+}
+
 function isFileDrag(event) {
   return event.dataTransfer.types.includes('Files')
 }
@@ -66,6 +72,7 @@ export default function App() {
         file: new File([blob], SAVE_NAME, { type: 'image/png' }),
       })
       setError('')
+      track('upload')
     } catch {
       URL.revokeObjectURL(before)
       setError('这张图片打不开，换一张 JPG 或 PNG 试试')
@@ -81,6 +88,7 @@ export default function App() {
   // Phones get the share sheet, which offers saving to Photos. Everything else
   // falls through to the link's normal download.
   function handleSave(event) {
+    track('save')
     const files = [upload.file]
     if (!window.matchMedia('(pointer: coarse)').matches || !navigator.canShare?.({ files })) return
 
